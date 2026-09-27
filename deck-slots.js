@@ -1,5 +1,6 @@
 (() => {
     'use strict';
+    alert("Script Loaded");
 
     if (window.EdenDecksAddonLoaded) return;
     window.EdenDecksAddonLoaded = true;
