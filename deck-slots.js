@@ -1,11 +1,10 @@
 (() => {
     'use strict';
-    alert("Script Loaded");
-
     if (window.EdenDecksAddonLoaded) return;
     window.EdenDecksAddonLoaded = true;
-
+    
     let EdenAddonSelectedDeck = 0;
+    let EdenData = getAddonData();
 
     function getAddonData() {
         return JSON.parse(localStorage.getItem('EdenDecksData')) || { names: {}, decks: {} };
@@ -16,47 +15,74 @@
     }
 
     function getDeckName(slot) {
-        const data = getAddonData();
-        return data.names[slot] || `Deck ${slot}`;
+        return EdenData.names[slot] || `Deck ${slot}`;
     }
 
     function setDeckName(slot, name) {
-        const data = getAddonData();
-        data.names[slot] = name;
-        saveAddonData(data);
+        EdenData.names[slot] = name;
+        saveAddonData(EdenData);
     }
 
     function saveDeck(slot, numbers) {
-        const data = getAddonData();
-        data.decks[slot] = numbers;
-        saveAddonData(data);
+        EdenData.decks[slot] = numbers;
+        saveAddonData(EdenData);
     }
 
     function getDeck(slot) {
-        const data = getAddonData();
-        return data.decks[slot] || [];
+        return EdenData.decks[slot] || [];
+    }
+
+    function addAddonStyles() {
+        if (document.getElementById('EdenDecksStyles')) return;
+
+        const style = document.createElement('style');
+        style.id = 'EdenDecksStyles';
+        style.textContent = `
+            #EdenDecksUI {
+                position: fixed;
+                top: 20px;
+                left: 20px;
+                z-index: 999999;
+                box-sizing: border-box;
+                padding: 10px;
+                border: 1px solid #666;
+                border-radius: 6px;
+                background: #2c2c2c;
+                color: white;
+                font-family: Arial, sans-serif;
+                font-size: 14px;
+            }
+
+            #EdenDecksUI button,
+            #EdenDecksUI select {
+                box-sizing: border-box;
+                width: 100%;
+            }
+
+            #EdenDecksUI button {
+                margin-bottom: 5px;
+            }
+
+            #EdenDecksUI .eden-decks-apply {
+                margin-bottom: 8px;
+            }
+        `;
+        (document.head || document.documentElement).appendChild(style);
     }
 
     function showSelector() {
         if (document.getElementById('EdenDecksUI')) return;
 
+        addAddonStyles();
+
         const panel = document.createElement('div');
         panel.id = 'EdenDecksUI';
 
-        Object.assign(panel.style, {
-            position: 'fixed', top: '20px', left: '20px',
-            background: '#2c2c2c', border: '1px solid #666',
-            borderRadius: '6px', padding: '10px', zIndex: '999999',
-            color: 'white', fontFamily: 'Arial', fontSize: '14px'
-        });
-
         const apply = document.createElement('button');
+        apply.className = 'eden-decks-apply';
         apply.textContent = 'Apply';
-        apply.style.marginBottom = '8px';
-        apply.style.width = '100%';
 
         const select = document.createElement('select');
-        select.style.width = '100%';
 
         for (let i = 1; i <= 40; i++) {
             const option = document.createElement('option');
@@ -67,8 +93,6 @@
 
         const rename = document.createElement('button');
         rename.textContent = 'Rename Selected';
-        rename.style.width = '100%';
-        rename.style.marginBottom = '5px';
         rename.onclick = () => {
             const slot = Number(select.value);
             const newName = prompt('New name:', getDeckName(slot));
@@ -161,9 +185,14 @@
     }
 
     function EdenBuilderLoadDeck(deck) {
-        window.ElementCreateDropdown('CardsTagsDropdown', Object.keys(ClubCardBuilderFilterGroupFilters), window.ClubCardBuilderTagChanged);
-        window.ElementCreateDropdown('DefaultDecksDropdown', Object.keys(ClubCardBuilderDefaultDecksList), window.ClubCardBuilderLoadPrecon);
-        window.ElementCreateSearchInput('CardsSearchFilter', () => window.ClubCardList.map(i => window.ClubCardTextGet(i)), { onInput: window.ClubCardBuilderInputChanged });
+        window.ElementCreateDropdown('CardsTagsDropdown', Object.keys(ClubCardBuilderFilterGroupFilters), function () {
+            ClubCardBuilderSelectedTag = this.value;
+            window.ClubCardBuilderFilterLoad();
+        });
+        window.ElementCreateDropdown('DefaultDecksDropdown', Object.keys(ClubCardBuilderDefaultDecksList), function () {
+            ClubCardBuilderDeckCurrent = ClubCardBuilderDefaultDecksList[this.value]?.slice();
+        });
+        window.ElementCreateSearchInput('CardsSearchFilter', () => window.ClubCardList.map(i => window.ClubCardTextGet(i.Name)), { onInput: window.ClubCardBuilderInputChanged });
 
         window.ClubCardBuilderDeckIndex = deck;
 
