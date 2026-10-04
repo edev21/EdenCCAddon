@@ -66,6 +66,14 @@
             #EdenDecksUI .eden-decks-apply {
                 margin-bottom: 8px;
             }
+
+            #EdenDecksUI .eden-decks-close {
+                display: block;
+                width: auto;
+                margin: -4px -4px 5px auto;
+                padding: 0 6px;
+                line-height: 18px;
+            }
         `;
         (document.head || document.documentElement).appendChild(style);
     }
@@ -78,9 +86,15 @@
         const panel = document.createElement('div');
         panel.id = 'EdenDecksUI';
 
+        const close = document.createElement('button');
+        close.className = 'eden-decks-close';
+        close.textContent = '×';
+        close.title = 'Close';
+        close.onclick = () => panel.remove();
+
         const apply = document.createElement('button');
         apply.className = 'eden-decks-apply';
-        apply.textContent = 'Apply';
+        apply.textContent = 'Select Deck';
 
         const select = document.createElement('select');
 
@@ -92,7 +106,7 @@
         }
 
         const rename = document.createElement('button');
-        rename.textContent = 'Rename Selected';
+        rename.textContent = 'Rename Deck';
         rename.onclick = () => {
             const slot = Number(select.value);
             const newName = prompt('New name:', getDeckName(slot));
@@ -111,6 +125,7 @@
             panel.remove();
         };
 
+        panel.appendChild(close);
         panel.appendChild(rename);
         panel.appendChild(apply);
         panel.appendChild(select);
@@ -152,7 +167,7 @@
     function hookClubCardBuilderGetDeckName() {
         const original = window.ClubCardBuilderGetDeckName;
         window.ClubCardBuilderGetDeckName = function (...args) {
-            if (EdenAddonSelectedDeck > 0) return getDeckName(EdenAddonSelectedDeck);
+            if (EdenAddonSelectedDeck > 0 && window.ClubCardBuilderDeckIndex !== -1) return getDeckName(EdenAddonSelectedDeck);
             return original.apply(this, args);
         };
     }
