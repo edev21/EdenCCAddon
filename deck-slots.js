@@ -118,10 +118,11 @@
         apply.onclick = () => {
             const slot = Number(select.value);
             const deck = getDeck(slot);
-            EdenAddonSelectedDeck = slot;
-
             if (window.CurrentScreen === 'ClubCard') EdenLoadDeckNumber(deck);
-            if (window.CurrentScreen === 'ClubCardBuilder') EdenBuilderLoadDeck(deck);
+            if (window.CurrentScreen === 'ClubCardBuilder') {
+                EdenAddonSelectedDeck = slot;
+                EdenBuilderLoadDeck(deck);
+            }
             panel.remove();
         };
 
@@ -167,7 +168,7 @@
     function hookClubCardBuilderGetDeckName() {
         const original = window.ClubCardBuilderGetDeckName;
         window.ClubCardBuilderGetDeckName = function (...args) {
-            if (EdenAddonSelectedDeck > 0 && window.ClubCardBuilderDeckIndex !== -1) return getDeckName(EdenAddonSelectedDeck);
+            if (EdenAddonSelectedDeck > 0 && window.CurrentScreen === 'ClubCardBuilder' && window.ClubCardBuilderDeckIndex !== -1) return getDeckName(EdenAddonSelectedDeck);
             return original.apply(this, args);
         };
     }
